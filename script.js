@@ -17,6 +17,7 @@ $('document').ready(function () {
     $("#end_field,#language_field").on("change", function () {
         $("#tree-container").empty();
         draw_tree("",{"name":val_or_placeholder("#end_field"),"_children": [],});
+        $('#searchSelect').empty();
     });
 
     
