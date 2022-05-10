@@ -4,17 +4,6 @@ import cgi
 import bs4
 import requests
 
-# START = "Ghent_University"
-# STOP = "Philosophy"
-BASE_URL = "https://en.wikipedia.org/wiki/"
-#
-# # Haal de wikipedia pagina op volgens start
-# response = requests.get(BASE_URL + START)
-# scraper = bs4.BeautifulSoup(response.text, "html.parser")
-#
-# # Haal div op met id "bodyContent"
-# body = scraper.find("div", {"id": "bodyContent"})
-
 
 def find_link(body):
     # Vind de eerste gewone http link binnen een p tag in de body
@@ -39,33 +28,47 @@ def between_brace(start, stop, paragraph):
             open_brace += 1
         elif i == ")":
             close_brace += 1
+    # als het aantal open accolades groter is dan  het aantal sluitende accolades, zit de link tussen de accolades
     return open_brace > close_brace
 
 
-def get_path(begin, eind):
+def get_path(language, begin, eind):
     # Haal de paden op tussen start en stop
-    path = [begin]
-    while path[-1] != eind:
-        response = requests.get(BASE_URL + path[-1])
+    current_link = "/wiki/" + begin
+    path = []
+    base_url = f"https://{language}.wikipedia.org"
+    while len(path) == 0 or path[-1] != eind:
+        response = requests.get(base_url + current_link)
         scraper = bs4.BeautifulSoup(response.text, "html.parser")
+
+        title = scraper.find("h1", {"id": "firstHeading"}).text
+        if title in path:
+            return "Cycle detected at " + title
+        path.append(title)
+
         body = scraper.find("div", {"id": "bodyContent"})
-        path.append(find_link(body)[6:])
+        current_link = find_link(body)
+        if not current_link:
+            return "No link found in page " + title
     return path
 
 
 # Lees data verstuurd door JavaScript
 parameters = cgi.FieldStorage()
-# data = json.loads(parameters.getvalue("data"))
-# waarde = parameters.getvalue("waarde")
-begin = parameters.getvalue("begin")
-eind = parameters.getvalue("eind")
+
+begin = parameters.getvalue("start")
+eind = parameters.getvalue("end")
+language = parameters.getvalue("language")
 
 # Bereken te verzenden data
-# nieuwe_lijst = data["lijst"] + [waarde]
-# nieuwe_data = {"lijst": nieuwe_lijst}
-path = {"path": get_path(begin, eind)}
+path = get_path(language, begin, eind)
+
+if type(path) == str:
+    body = {"error": path}
+else:
+    body = {"path": path}
 
 # Stuur antwoord terug
 print("Content-Type: application/json")
 print()  # Lege lijn na headers
-print(json.dumps(path))
+print(json.dumps(body))

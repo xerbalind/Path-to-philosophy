@@ -1,16 +1,8 @@
 import bs4
 import requests
 
-START = "Science"
-STOP = "Philosophy"
-BASE_URL = "https://en.wikipedia.org/wiki/"
-
-# Haal de wikipedia pagina op volgens start
-response = requests.get(BASE_URL + START)
-scraper = bs4.BeautifulSoup(response.text, "html.parser")
-
-# Haal div op met id "bodyContent"
-body = scraper.find("div", {"id": "bodyContent"})
+START = "Python (programming language)"
+STOP = "Psychology"
 
 
 def find_link(body):
@@ -39,12 +31,25 @@ def between_brace(start, stop, paragraph):
     return open_brace > close_brace
 
 
-links = [START]
-while links[-1] != STOP:
-    response = requests.get(BASE_URL + links[-1])
-    scraper = bs4.BeautifulSoup(response.text, "html.parser")
-    body = scraper.find("div", {"id": "bodyContent"})
-    links.append(find_link(body)[6:])
-    print(links[-1])
+def get_path(language, begin, eind):
+    # Haal de paden op tussen start en stop
+    current_link = "/wiki/" + begin
+    path = []
+    base_url = f"https://{language}.wikipedia.org"
+    while len(path) == 0 or path[-1] != eind:
+        response = requests.get(base_url + current_link)
+        scraper = bs4.BeautifulSoup(response.text, "html.parser")
 
-print(links)
+        title = scraper.find("h1", {"id": "firstHeading"}).text
+        if title in path:
+            return "Cycle detected at " + title
+        path.append(title)
+
+        body = scraper.find("div", {"id": "bodyContent"})
+        current_link = find_link(body)
+        if not current_link:
+            return "No link found in page " + title
+    return path
+
+
+print(get_path("en", START, STOP))
