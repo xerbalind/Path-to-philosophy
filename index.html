@@ -3,22 +3,24 @@
 
 <head>
     <meta charset="utf-8">
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" type="text/css" href="d3/app.css" />
+    <link rel="stylesheet" type="text/css" href="app.css" />
     <link rel="stylesheet" type="text/css" href="d3/d3-context-menu.css" />
 
-    <title>Lijsten</title>
+    <title>The path to Philosophy</title>
 </head>
 
 <body>
-    <input type="text" id="language_field" placeholder="en" />
-    <input type="text" id="start_field" placeholder="Special:Random" />
-    <input type="text" id="end_field" placeholder="Philosophy" />
-    <button type="button" id="addButton">Voeg toe</button>
+    <label>Language:</label> <input type="text" id="language_field" placeholder="en" />
+    <label>Start:</label> <input type="text" id="start_field" placeholder="Special:Random" />
+    <label>End:</label> <input type="text" id="end_field" placeholder="Philosophy" />
+    <button type="button" id="addButton">Add</button>
+    <Button type="button" id="expandButton">Expand All</Button>
+    <label>Search:</label> <select name="Search" id="searchSelect">
+    </select>
     <hr />
 
-    <select name="Search" id="searchSelect">
-    </select>
-    <Button type="button" id="expandButton">Expand All</Button>
 
     <div id="tree-container"></div>
 

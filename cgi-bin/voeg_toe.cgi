@@ -15,7 +15,7 @@ path.construct_path()
 
 if path.status_message != "success":
     # Als er een error bericht aanwezig is betekent het dat er iets is mis gelopen
-    body = {"error": path}
+    body = {"error": path.status_message}
 else:
     body = {"path": path.path}
 

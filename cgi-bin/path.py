@@ -1,6 +1,5 @@
 import bs4
 import requests
-import utils
 
 
 class Path:
@@ -9,14 +8,16 @@ class Path:
         self.begin = begin
         self.end = end
         self.base_url = f"https://{language}.wikipedia.org"
-        self.status_message = "nothing done"
+        self.status_message = "not constructed"
 
     def is_valid(self, link, paragraph) -> bool:
         """Checkt of de link wel tot de juiste criteria behoort:
-        enkel reguliere link is toegestaan en mag niet tussen haakjes zijn."""
+        enkel reguliere link is toegestaan en mag niet tussen haakjes staan."""
+
+        search_area = paragraph[0 : paragraph.find(link.text)]
 
         return (
-            not utils.between_braces(0, paragraph.find(link.text), paragraph)
+            search_area.count("(") <= search_area.count(")")
             and ":" not in link["href"]
             and link["href"].startswith("/wiki/")
         )
@@ -32,29 +33,44 @@ class Path:
 
         return ""
 
+    def get_end_page(self) -> str:
+        """Retourneert de juiste titel/naam van het doel pagina."""
+
+        response = requests.get(self.base_url + "/wiki/" + self.end)
+        if response.status_code == 200:
+            scraper = bs4.BeautifulSoup(response.text, "html.parser")
+            return scraper.find("h1", {"id": "firstHeading"}).text
+        elif response.status_code == 404:
+            self.status_message = f"Page {self.end} not found."
+
+        return ""
+
     def construct_path(self) -> None:
         """Construeert een pad van start naar stop en slaat het op."""
 
         current_link = "/wiki/" + self.begin
+        end_title = self.get_end_page()
 
-        stop = False
+        stop = False if end_title else True
+
         while not stop:
 
             response = requests.get(self.base_url + current_link)
             scraper = bs4.BeautifulSoup(response.text, "html.parser")
 
             title = scraper.find("h1", {"id": "firstHeading"}).text
-            if title.lower() == self.end.lower():
+            if title == end_title:
                 self.status_message = "success"
+                self.path.append(self.end)
                 stop = True
-            if title in self.path:
+            elif title in self.path:
                 self.status_message = f"Cycle detected at page {title}."
                 stop = True
+            else:
+                self.path.append(title)
+                body = scraper.find("div", {"id": "bodyContent"})
+                current_link = self.find_link(body)
 
-            self.path.append(title)
-            body = scraper.find("div", {"id": "bodyContent"})
-            current_link = self.find_link(body)
-
-            if not current_link:
-                self.status_message = f"No link found in page: {title}."
-                stop = True
+                if not current_link:
+                    self.status_message = f"No link found in page: {title}."
+                    stop = True

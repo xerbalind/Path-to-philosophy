@@ -1,4 +1,4 @@
-//https://bl.ocks.org/adamfeuer/b7d545f3fa025d6ed56183129a7ee01c
+//Source https://gist.github.com/adamfeuer/a8950c5197fe491f13969a03100159d5
 
 var tree_root;
 outer_update = null;
@@ -257,7 +257,7 @@ function draw_tree(error, treeData) {
   function colorNode(d) {
         result = "#fff";
         if (d.class === "found") {
-            result = "#ff4136"; //red
+            result = "#00e639"; //red
         } else if (d.type == "synthetic") {
             result = (d._children || d.children) ? "darkgray" : "lightgray";
         } else if (d.type == "person") {
