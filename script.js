@@ -54,7 +54,7 @@ function getPath(start,end,language) {
                 // Er is een error object teruggekomen.
                 alert(data.error);
             } else {
-                add_to_tree(data.path.slice().reverse());
+                add_to_tree(data.path.slice(0,-1).reverse());
                 outer_update(tree_root);
 
                 // Voegt de nieuwe start site toe aan de zoeklijst(dropdown).
@@ -73,43 +73,22 @@ function val_or_placeholder(element){
     return $(element).val() || $(element).attr("placeholder");
 }
 
-/**
-* Vind het punt waar het nieuwe pad weg gaat uit de boom.
-*/
-function find_intersection(names){
-    let node = tree_root;
-    let found;
-    for(let name of names){
-        const children = node.children ?? node._children;
-        if (children) {
-            found = children.find(child => child.name === name);
-            if(found == undefined) return node;
-            node = found;
-        } else {
-            return node;
-        }
-    };
-
-    return node;
-}
 
 /**
-* Voegt de paginas(titels) toe aan boom.
+* Voegt de paginas(titels) toe aan boom op de juiste plaats.
 */
 function add_to_tree(titles) {
-    let node = find_intersection(titles.slice(1));
-    if (node.name !== titles.slice(-1)[0]) {
-        let added = false;
-        for(let title of titles){
-            if(!added){
-                if(node.name === title) added = true;
-
-            } else {
-                node = create_node(node,title);
-            }
+    let node = tree_root;
+    let found;
+    for(let name of titles){
+        const children = node.children ?? node._children ?? [];
+        found = children.find(child => child.name === name);
+        if(found) {
+            node = found;
+        } else {
+            node = create_node(node,name);
         }
-    }
-
+    };
 }
 
 
