@@ -25,6 +25,7 @@ $('document').ready(function () {
     
     // Een luisteraar dat luistert op veranderingen in dropdown.
     $('#searchSelect').on('change', function() {
+        // Onderstaande functies worden opgeroepen in het d3 script dat ik niet zelf heb geschreven.
         clearAll(tree_root);
         expandAll(tree_root);
         outer_update(tree_root);

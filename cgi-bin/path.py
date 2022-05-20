@@ -33,44 +33,50 @@ class Path:
 
         return ""
 
-    def get_end_page(self) -> str:
-        """Retourneert de juiste titel/naam van het doel pagina."""
+    def get_scraper(self, url):
+        """Retourneert het soup object."""
 
-        response = requests.get(self.base_url + "/wiki/" + self.end)
-        if response.status_code == 200:
-            scraper = bs4.BeautifulSoup(response.text, "html.parser")
-            return scraper.find("h1", {"id": "firstHeading"}).text
-        elif response.status_code == 404:
-            self.status_message = f"Page {self.end} not found."
-
-        return ""
+        try:
+            response = requests.get(self.base_url + url)
+        except requests.exceptions.ConnectionError:
+            self.status_message = "Unable to reach site."
+        else:
+            if response.status_code == 200:
+                scraper = bs4.BeautifulSoup(response.text, "html.parser")
+                return scraper
+            elif response.status_code == 404:
+                self.status_message = f"Page {self.end} not found."
 
     def construct_path(self) -> None:
         """Construeert een pad van start naar stop en slaat het op."""
 
         current_link = "/wiki/" + self.begin
-        end_title = self.get_end_page()
 
-        stop = False if end_title else True
+        scraper = self.get_scraper("/wiki/" + self.end)
+        if not scraper:
+            return
 
+        end_title = scraper.find("h1", {"id": "firstHeading"}).text
+        stop = False
         while not stop:
+            scraper = self.get_scraper(current_link)
 
-            response = requests.get(self.base_url + current_link)
-            scraper = bs4.BeautifulSoup(response.text, "html.parser")
-
-            title = scraper.find("h1", {"id": "firstHeading"}).text
-            if title == end_title:
-                self.status_message = "success"
-                self.path.append(self.end)
-                stop = True
-            elif title in self.path:
-                self.status_message = f"Cycle detected at page {title}."
-                stop = True
-            else:
-                self.path.append(title)
-                body = scraper.find("div", {"id": "bodyContent"})
-                current_link = self.find_link(body)
-
-                if not current_link:
-                    self.status_message = f"No link found in page: {title}."
+            if scraper:
+                title = scraper.find("h1", {"id": "firstHeading"}).text
+                if title == end_title:
+                    self.status_message = "success"
+                    self.path.append(self.end)
                     stop = True
+                elif title in self.path:
+                    self.status_message = f"Cycle detected at page {title}."
+                    stop = True
+                else:
+                    self.path.append(title)
+                    body = scraper.find("div", {"id": "bodyContent"})
+                    current_link = self.find_link(body)
+
+                    if not current_link:
+                        self.status_message = f"No link found in page: {title}."
+                        stop = True
+            else:
+                stop = True
