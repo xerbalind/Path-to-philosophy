@@ -31,13 +31,11 @@ $('document').ready(function () {
         outer_update(tree_root);
 
         // Zoekt in de boom
-        if (tree_root.children) {
-            searchText = $(this).val();
-            searchTree(tree_root,true)
-            tree_root.children.forEach(collapseAllNotFound);
-            outer_update(tree_root);
-            tree_root.children.forEach(centerSearchTarget);
-        }
+        searchText = $(this).val();
+        searchTree(tree_root,true)
+        tree_root.children.forEach(collapseAllNotFound);
+        outer_update(tree_root);
+        tree_root.children.forEach(centerSearchTarget);
 
     });
     draw_tree("",{"name":val_or_placeholder("#end_field")});
@@ -53,7 +51,9 @@ function getPath(start,end,language) {
             if(data.error){
                 // Er is een error object teruggekomen.
                 alert(data.error);
-            } else {
+            } else if (data.path.slice(-1)[0] !== tree_root.name) {
+                alert("De root komt niet overeen met de eindpagina van het pad.");
+            } else{
                 add_to_tree(data.path.slice(0,-1).reverse());
                 outer_update(tree_root);
 

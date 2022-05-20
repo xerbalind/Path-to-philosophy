@@ -42,8 +42,7 @@ class Path:
             self.status_message = "Unable to reach site."
         else:
             if response.status_code == 200:
-                scraper = bs4.BeautifulSoup(response.text, "html.parser")
-                return scraper
+                return bs4.BeautifulSoup(response.text, "html.parser")
             elif response.status_code == 404:
                 self.status_message = f"Page {url.replace('/wiki/','')} not found."
 
@@ -65,18 +64,17 @@ class Path:
                 title = soup.find("h1", {"id": "firstHeading"}).text
                 if title == end_title:
                     self.status_message = "success"
-                    self.path.append(self.end)
                     stop = True
                 elif title in self.path:
                     self.status_message = f"Cycle detected at page {title}."
                     stop = True
                 else:
-                    self.path.append(title)
                     body = soup.find("div", {"id": "bodyContent"})
                     current_link = self.find_link(body)
 
                     if not current_link:
                         self.status_message = f"No link found in page: {title}."
                         stop = True
+                self.path.append(title)
             else:
                 stop = True
