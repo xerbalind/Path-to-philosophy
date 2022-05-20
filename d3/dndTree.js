@@ -1,4 +1,9 @@
-//Source https://gist.github.com/adamfeuer/a8950c5197fe491f13969a03100159d5
+/*
+* Copyright (c) 2015 Adam Feuer
+* https://gist.github.com/adamfeuer/a8950c5197fe491f13969a03100159d5
+*
+* Under MIT License (MIT)
+*/
 
 var tree_root;
 outer_update = null;

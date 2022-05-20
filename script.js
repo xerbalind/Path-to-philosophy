@@ -6,7 +6,7 @@ $('document').ready(function () {
         const start = val_or_placeholder("#start_field");
         const end = val_or_placeholder("#end_field");
         const language = val_or_placeholder("#language_field");
-        addPath(start, end, language);
+        getPath(start, end, language);
     });
 
     $("#expandButton").click(function () {
@@ -18,37 +18,35 @@ $('document').ready(function () {
     $("#end_field,#language_field").on("change", function () {
         // de tree wordt verwijderd en opnieuw ingesteld met een nieuwe root.
         $("#tree-container").empty();
-        draw_tree("",{"name":val_or_placeholder("#end_field"),"_children": [],});
+        draw_tree("",{"name":val_or_placeholder("#end_field")});
         $('#searchSelect').empty();
     });
 
     
     // Een luisteraar dat luistert op veranderingen in dropdown.
     $('#searchSelect').on('change', function() {
-        // Onderstaande functies worden opgeroepen in het d3 script dat ik niet zelf heb geschreven.
+        // Onderstaande functies worden opgeroepen in het d3 script dat ik niet zelf heb geschreven (dndTree.js).
         clearAll(tree_root);
         expandAll(tree_root);
         outer_update(tree_root);
 
         // Zoekt in de boom
-        searchText = $(this).val();
-        searchTree(tree_root,true)
-        tree_root.children.forEach(collapseAllNotFound);
-        outer_update(tree_root);
-        tree_root.children.forEach(centerSearchTarget);
+        if (tree_root.children) {
+            searchText = $(this).val();
+            searchTree(tree_root,true)
+            tree_root.children.forEach(collapseAllNotFound);
+            outer_update(tree_root);
+            tree_root.children.forEach(centerSearchTarget);
+        }
 
     });
-    const root = {
-          "name": "Philosophy",
-           "_children": [],
-        } 
-    draw_tree("",root);
+    draw_tree("",{"name":val_or_placeholder("#end_field")});
 });
 
 /**
 * Haalt het pad op uit de databank en voegt deze toe aan de boom.
 */
-function addPath(start,end,language) {
+function getPath(start,end,language) {
     fetch(`cgi-bin/voeg_toe.cgi?language=${language}&start=${start}&end=${end}`)
         .then(antwoord => antwoord.json())
         .then(data => {
@@ -76,7 +74,7 @@ function val_or_placeholder(element){
 }
 
 /**
-* Vind het punt waar het nieuwe pad uit elkaar gaat in de boom.
+* Vind het punt waar het nieuwe pad weg gaat uit de boom.
 */
 function find_intersection(names){
     let node = tree_root;
@@ -126,6 +124,7 @@ function create_node(parent,name) {
         if (parent.children == null) {
             parent.children = [];
         }
+        // genereert een willekeure id voor de node.
         id = crypto.randomUUID(); 
         new_node = { 'name': name, 
                      'id' :  id,

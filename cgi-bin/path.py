@@ -33,7 +33,7 @@ class Path:
 
         return ""
 
-    def get_scraper(self, url):
+    def get_soup(self, url):
         """Retourneert het soup object."""
 
         try:
@@ -45,24 +45,24 @@ class Path:
                 scraper = bs4.BeautifulSoup(response.text, "html.parser")
                 return scraper
             elif response.status_code == 404:
-                self.status_message = f"Page {self.end} not found."
+                self.status_message = f"Page {url.replace('/wiki/','')} not found."
 
     def construct_path(self) -> None:
         """Construeert een pad van start naar stop en slaat het op."""
 
         current_link = "/wiki/" + self.begin
 
-        scraper = self.get_scraper("/wiki/" + self.end)
-        if not scraper:
+        soup = self.get_soup("/wiki/" + self.end)
+        if not soup:
             return
 
-        end_title = scraper.find("h1", {"id": "firstHeading"}).text
+        end_title = soup.find("h1", {"id": "firstHeading"}).text
         stop = False
         while not stop:
-            scraper = self.get_scraper(current_link)
+            soup = self.get_soup(current_link)
 
-            if scraper:
-                title = scraper.find("h1", {"id": "firstHeading"}).text
+            if soup:
+                title = soup.find("h1", {"id": "firstHeading"}).text
                 if title == end_title:
                     self.status_message = "success"
                     self.path.append(self.end)
@@ -72,7 +72,7 @@ class Path:
                     stop = True
                 else:
                     self.path.append(title)
-                    body = scraper.find("div", {"id": "bodyContent"})
+                    body = soup.find("div", {"id": "bodyContent"})
                     current_link = self.find_link(body)
 
                     if not current_link:
